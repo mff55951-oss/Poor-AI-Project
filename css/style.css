@@ -1,1 +1,157 @@
+/* ==========================================
+   Poor AI - Custom Stylesheet
+========================================== */
+
+/* 1. Smooth Scrolling & Base Selection */
+html {
+    scroll-behavior: smooth;
+}
+
+::selection {
+    background-color: rgba(47, 129, 247, 0.3); /* Primary blue with opacity */
+    color: #ffffff;
+}
+
+/* 2. Custom Scrollbar (Hacker/Dark Theme) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(48, 54, 61, 0.8); /* Dark border color */
+    border-radius: 10px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 148, 158, 0.5); /* Lighter gray on hover */
+}
+
+/* Hide scrollbar for textareas but allow scrolling */
+textarea::-webkit-scrollbar {
+    display: none;
+}
+textarea {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* 3. Animations */
+/* Fade in animation for new messages */
+.fade-enter {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 4. Typing Indicator Animation (Bouncing Dots) */
+.typing-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: #2f81f7; /* Primary Color */
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+    margin-top: 10px;
+}
+
+.typing-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.3;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 5. Markdown & Code Block Overrides */
+/* Making sure the code wrapper looks like a real IDE */
+.code-block-wrapper {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+.code-block-wrapper pre {
+    margin: 0 !important;
+    background: transparent !important;
+}
+
+.prose p {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+}
+
+.prose strong {
+    color: #e6edf3;
+    font-weight: 600;
+}
+
+.prose a {
+    color: #2f81f7;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.prose a:hover {
+    border-bottom-color: #2f81f7;
+}
+
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.prose ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Inline code style */
+.prose code:not(pre code) {
+    font-family: 'JetBrains Mono', monospace;
+    background-color: rgba(110, 118, 129, 0.2);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 85%;
+    color: #ff7b72; /* Subtle red/orange for inline code */
+}
+
+/* Remove default backticks added by Tailwind Typography on inline code */
+.prose code::before,
+.prose code::after {
+    content: "" !important;
+}
+
+/* 6. Pricing Card Hover Effects */
+.pricing-card {
+    transition: all 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.15); /* Subtle amber glow */
+}
 
