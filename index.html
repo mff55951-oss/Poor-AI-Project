@@ -1,1 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" class="dark antialiased">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Poor AI - The Ultimate Coding Assistant</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Markdown Parsers -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- Custom CSS Link -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "dark-bg": "#0d1117",
+                        "dark-surface": "#161b22",
+                        "dark-border": "#30363d",
+                        "primary": "#2f81f7",
+                        "primary-hover": "#1f6feb",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-bg text-gray-300 h-screen overflow-hidden flex selection:bg-primary/30">
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/70 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-[280px] h-full bg-dark-surface flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 shrink-0 border-r border-dark-border">
+        
+        <div class="p-4 flex flex-col gap-4 h-[calc(100%-140px)]">
+            <!-- Logo / Brand Text -->
+            <div class="flex items-center justify-between mb-2">
+                <h1 class="text-2xl font-bold tracking-tight text-white font-mono">
+                    <span class="text-primary">>_</span>Poor AI
+                </h1>
+                <button id="close-sidebar-btn" class="md:hidden p-1.5 rounded-md hover:bg-white/10 text-gray-400">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- New Chat Button -->
+            <button id="new-chat-btn" class="flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-2.5 rounded-lg hover:bg-primary/20 transition-colors w-full font-medium">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                New Chat
+            </button>
+            
+            <!-- Chat History -->
+            <div class="flex flex-col gap-2 mt-4 flex-1 overflow-hidden">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">Recent Chats</div>
+                <div id="chat-list" class="custom-scrollbar overflow-y-auto flex-1 flex flex-col gap-1 pb-4">
+                    <!-- Chat history items will be injected here by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile & Pro Upgrade -->
+        <div class="p-4 flex flex-col gap-3 border-t border-dark-border bg-dark-bg/50">
+            <button id="upgrade-pro-btn" class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all">
+                <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+                Upgrade to Pro
+            </button>
+            
+            <div id="user-profile-section" class="flex items-center justify-between cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
+                <div class="flex items-center gap-3">
+                    <div id="user-avatar" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600">?</div>
+                    <div class="flex flex-col">
+                        <span id="user-name" class="text-sm font-medium text-white">Guest User</span>
+                        <span id="user-status" class="text-xs text-gray-500">Free Tier</span>
+                    </div>
+                </div>
+                <span class="material-symbols-outlined text-gray-500 text-[18px]">login</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col h-full relative w-full">
+        
+        <!-- Mobile Header -->
+        <div class="md:hidden flex items-center justify-between p-4 border-b border-dark-border bg-dark-surface z-20">
+            <button id="open-sidebar-btn" class="p-1.5 rounded-md hover:bg-white/10 text-gray-300">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <h1 class="text-lg font-bold text-white font-mono">Poor AI</h1>
+            <div class="w-8"></div> <!-- Spacer -->
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chat-container" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center pt-8 pb-40 px-4 md:px-0 w-full scroll-smooth">
+            
+            <!-- Welcome Screen -->
+            <div id="welcome-screen" class="w-full max-w-3xl flex flex-col gap-8 mt-10 md:mt-20 fade-enter text-center">
+                <div class="space-y-4">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white font-mono">
+                        How can I help you <span class="text-primary">code</span> today?
+                    </h1>
+                    <p class="text-gray-400 text-lg">Your ultimate AI assistant for programming and development.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-8 text-left">
+                    <button class="prompt-btn p-4 rounded-xl bg-dark-surface border border-dark-border hover:border-gray-500 transition-colors group">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="material-symbols-outlined text-green-400">code</span>
+                        </div>
+                        <p class="text-gray-300 font-medium text-sm group-hover:text-white">Review my JavaScript code for bugs and security issues</p>
+                    </button>
+                    <button class="prompt-btn p-4 rounded-xl bg-dark-surface border border-dark-border hover:border-gray-500 transition-colors group">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="material-symbols-outlined text-blue-400">database</span>
+                        </div>
+                        <p class="text-gray-300 font-medium text-sm group-hover:text-white">Help me design a scalable MongoDB schema</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages will be injected here -->
+            <div id="messages-container" class="w-full max-w-3xl flex flex-col gap-6 px-2 md:px-0 hidden pb-4"></div>
+            
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="w-full max-w-3xl px-2 md:px-0 hidden mt-4">
+                <div class="flex gap-4 items-center">
+                    <div class="font-mono text-primary font-bold text-xl">>_</div>
+                    <div class="typing-dots flex gap-1"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-dark-bg via-dark-bg to-transparent pt-10 pb-6 px-4 z-20">
+            <div class="max-w-3xl mx-auto relative">
+                
+                <!-- Status/Error Banner -->
+                <div id="status-banner" class="hidden absolute -top-12 left-0 right-0 px-4 py-2 rounded-lg text-sm text-center font-medium transition-all shadow-lg border"></div>
+
+                <!-- Image Preview -->
+                <div id="image-preview-container" class="hidden absolute -top-20 left-4 bg-dark-surface p-1.5 rounded-lg border border-dark-border shadow-lg">
+                    <div class="relative group">
+                        <img id="image-preview" src="" class="h-14 w-14 object-cover rounded-md" alt="Upload preview">
+                        <button id="remove-image-btn" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Box -->
+                <div class="bg-dark-surface rounded-xl p-2 flex items-end gap-2 border border-dark-border focus-within:border-gray-500 focus-within:shadow-[0_0_15px_rgba(255,255,255,0.05)] transition-all">
+                    
+                    <input type="file" id="image-upload" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('image-upload').click()" class="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0" title="Upload Image">
+                        <span class="material-symbols-outlined">image</span>
+                    </button>
+                    
+                    <button id="voice-btn" class="p-2.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors shrink-0" title="Voice Input">
+                        <span class="material-symbols-outlined" id="mic-icon">mic</span>
+                    </button>
+                    
+                    <textarea id="user-input" class="w-full bg-transparent border-none focus:ring-0 text-gray-100 placeholder-gray-500 resize-none py-3 px-2 max-h-[200px] text-base focus:outline-none font-sans" placeholder="Message Poor AI... (Shift+Enter for new line)" rows="1" style="min-height: 48px;"></textarea>
+                    
+                    <div class="flex items-center mb-1 shrink-0">
+                        <button id="stop-btn" class="hidden p-2.5 rounded-lg text-red-500 hover:bg-red-500/20 transition-colors" title="Stop Generation">
+                            <span class="material-symbols-outlined">stop_circle</span>
+                        </button>
+                        <button id="send-btn" class="p-2.5 rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:bg-gray-700 flex items-center justify-center">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <p class="text-xs text-gray-500 font-mono">
+                        Poor AI can make mistakes. Check important code.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pricing / Pro Subscription Modal -->
+    <div id="pricing-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity px-4">
+        <div class="bg-dark-surface w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden border border-dark-border flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-5 border-b border-dark-border flex justify-between items-center bg-dark-bg/50">
+                <h3 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500 text-3xl">workspace_premium</span> 
+                    Upgrade to <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Poor AI Pro</span>
+                </h3>
+                <button id="close-pricing-btn" class="p-1 rounded-md text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <p class="text-gray-300 text-center mb-6">Unlock powerful AI models like GPT-4o, Claude 3.5 Sonnet, and generate unlimited code!</p>
+                
+                <!-- Pricing Grid (8 Packages) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <!-- Package 1 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="1 Month" data-price="100">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">6% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">1 Month</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳100</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳106</span>
+                        </div>
+                    </div>
+                    <!-- Package 2 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="2 Months" data-price="190">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">10% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">2 Months</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳190</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳212</span>
+                        </div>
+                    </div>
+                    <!-- Package 3 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="3 Months" data-price="280">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">11% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">3 Months</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳280</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳318</span>
+                        </div>
+                    </div>
+                    <!-- Package 4 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="6 Months" data-price="540">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">15% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">6 Months</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳540</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳636</span>
+                        </div>
+                    </div>
+                    <!-- Package 5 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="9 Months" data-price="780">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">18% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">9 Months</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳780</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳954</span>
+                        </div>
+                    </div>
+                    <!-- Package 6 -->
+                    <div class="pricing-card border border-amber-500/50 rounded-xl p-4 shadow-[0_0_15px_rgba(245,158,11,0.1)] cursor-pointer bg-amber-900/10 relative" data-package="1 Year" data-price="1000">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">21% OFF</div>
+                        <div class="absolute -top-3 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</div>
+                        <h4 class="text-amber-500 font-medium mb-1">12 Months (1 Year)</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳1,000</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳1,272</span>
+                        </div>
+                    </div>
+                    <!-- Package 7 -->
+                    <div class="pricing-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-colors cursor-pointer bg-dark-bg relative" data-package="18 Months" data-price="1450">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">24% OFF</div>
+                        <h4 class="text-gray-400 font-medium mb-1">18 Months</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳1,450</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳1,908</span>
+                        </div>
+                    </div>
+                    <!-- Package 8 -->
+                    <div class="pricing-card border border-green-500/50 rounded-xl p-4 shadow-[0_0_15px_rgba(34,197,94,0.1)] cursor-pointer bg-green-900/10 relative" data-package="2 Years" data-price="1900">
+                        <div class="absolute -top-3 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">25% OFF!</div>
+                        <div class="absolute -top-3 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">BEST VALUE</div>
+                        <h4 class="text-green-500 font-medium mb-1">24 Months (2 Years)</h4>
+                        <div class="flex items-end gap-1 mb-2">
+                            <span class="text-2xl font-bold text-white">৳1,900</span>
+                            <span class="text-xs text-gray-500 line-through mb-1">৳2,544</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Instructions -->
+                <div class="bg-dark-bg p-5 rounded-xl border border-dark-border hidden" id="payment-instructions">
+                    <h4 class="text-white font-semibold mb-3">How to pay manually:</h4>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-2 text-sm mb-4">
+                        <li>Send exactly <strong class="text-amber-500" id="selected-price">৳0</strong> via Send Money to <strong class="text-white">01902701458</strong> (bKash/Nagad).</li>
+                        <li>Click the button below to send us your Transaction ID (TrxID) via WhatsApp.</li>
+                        <li>Admin will approve your Pro access within a few minutes!</li>
+                    </ol>
+                    <button id="whatsapp-pay-btn" class="w-full bg-[#25D366] hover:bg-[#1ebd5a] text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-symbols-outlined">chat</span>
+                        Send TrxID via WhatsApp
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase & Custom Scripts (Will be populated later) -->
+    <!-- <script type="module" src="js/firebase-config.js"></script> -->
+    <!-- <script type="module" src="js/auth.js"></script> -->
+    <!-- <script type="module" src="js/payment.js"></script> -->
+    <!-- <script type="module" src="js/app.js"></script> -->
+
+    <!-- Basic UI Interactions Script (Temporary until app.js is ready) -->
+    <script>
+        // Sidebar Toggles
+        document.getElementById('open-sidebar-btn').onclick = () => {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.remove('hidden');
+        };
+        const closeSidebar = () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+        };
+        document.getElementById('close-sidebar-btn').onclick = closeSidebar;
+        document.getElementById('sidebar-overlay').onclick = closeSidebar;
+
+        // Auto-resize Textarea
+        const userInput = document.getElementById('user-input');
+        userInput.addEventListener('input', function() {
+            this.style.height = '48px';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Pricing Modal Toggles
+        const pricingModal = document.getElementById('pricing-modal');
+        document.getElementById('upgrade-pro-btn').onclick = () => {
+            pricingModal.classList.remove('hidden');
+            setTimeout(() => pricingModal.classList.remove('opacity-0'), 10);
+        };
+        document.getElementById('close-pricing-btn').onclick = () => {
+            pricingModal.classList.add('opacity-0');
+            setTimeout(() => pricingModal.classList.add('hidden'), 300);
+        };
+
+        // Package Selection Logic
+        const pricingCards = document.querySelectorAll('.pricing-card');
+        const paymentBox = document.getElementById('payment-instructions');
+        const selectedPriceEl = document.getElementById('selected-price');
+        const whatsappBtn = document.getElementById('whatsapp-pay-btn');
+
+        let selectedPackage = '';
+        let selectedPrice = '';
+
+        pricingCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove highlight from all
+                pricingCards.forEach(c => c.classList.remove('ring-2', 'ring-amber-500'));
+                // Add highlight to clicked
+                card.classList.add('ring-2', 'ring-amber-500');
+                
+                selectedPackage = card.getAttribute('data-package');
+                selectedPrice = card.getAttribute('data-price');
+                
+                selectedPriceEl.textContent = `৳${selectedPrice}`;
+                paymentBox.classList.remove('hidden');
+
+                // Generate WhatsApp Link
+                const message = `Hello Admin! I want to buy Poor AI Pro.\n\nPackage: ${selectedPackage}\nAmount Sent: ৳${selectedPrice}\nMy Email: (type your login email here)\nTrxID: (type trxID here)`;
+                const encodedMessage = encodeURIComponent(message);
+                whatsappBtn.onclick = () => {
+                    window.open(`https://wa.me/8801902701458?text=${encodedMessage}`, '_blank');
+                };
+            });
+        });
+    </script>
+</body>
+</html>
 
